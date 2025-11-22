@@ -26,6 +26,9 @@ COPY . .
 RUN --mount=type=secret,id=env_content \
     if [ -f /run/secrets/env_content ]; then \
         cat /run/secrets/env_content > .env; \
+    else \
+        echo "ERROR: ENV secret not provided during build" >&2; \
+        exit 1; \
     fi
 
 # Expose the port (default FastAPI/uvicorn port)

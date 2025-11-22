@@ -33,7 +33,9 @@ jobs:
         env:
           ENV_CONTENT: ${{ secrets.ENV }}
         run: |
-          # Create temporary file for secret
+          # Create temporary file for secret with restricted permissions
+          touch /tmp/env_secret
+          chmod 600 /tmp/env_secret
           echo "$ENV_CONTENT" > /tmp/env_secret
           
           # Build with secret mount (more secure than build-arg)
