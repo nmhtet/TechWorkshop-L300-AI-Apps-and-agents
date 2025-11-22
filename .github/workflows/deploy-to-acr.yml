@@ -30,11 +30,22 @@ jobs:
       
       - name: Build and push Docker image
         working-directory: ./src
+        env:
+          ENV_CONTENT: ${{ secrets.ENV }}
         run: |
+          # Create temporary file for secret
+          echo "$ENV_CONTENT" > /tmp/env_secret
+          
+          # Build with secret mount (more secure than build-arg)
           docker build \
-            --build-arg ENV_CONTENT="${{ secrets.ENV }}" \
+            --secret id=env_content,src=/tmp/env_secret \
             -t ${{ secrets.ACR_LOGIN_SERVER }}/techworkshop-app:${{ github.sha }} \
             -t ${{ secrets.ACR_LOGIN_SERVER }}/techworkshop-app:latest \
             .
+          
+          # Clean up temporary file
+          rm -f /tmp/env_secret
+          
+          # Push images
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/techworkshop-app:${{ github.sha }}
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/techworkshop-app:latest
