@@ -21,8 +21,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the code
 COPY . .
 
-# Copy .env file into the image (for python-dotenv)
-COPY .env .env
+# Create .env file from secret mount (for python-dotenv)
+# The secret will be mounted at build time but not stored in image layers
+RUN --mount=type=secret,id=env_content \
+    if [ -f /run/secrets/env_content ]; then \
+        cat /run/secrets/env_content > .env && chmod 600 .env; \
+    else \
+        echo "ERROR: ENV secret not provided during build" >&2; \
+        exit 1; \
+    fi
 
 # Expose the port (default FastAPI/uvicorn port)
 EXPOSE 8000
