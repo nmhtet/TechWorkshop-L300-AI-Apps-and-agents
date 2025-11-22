@@ -1,51 +1,68 @@
-name: Deploy to Azure Container Registry
+name: Build and push to Azure Container Registry
 
 on:
   push:
-    branches:
-      - main
-
-permissions:
-  contents: read
+    branches: [ main ]
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: read
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Log in to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      
-      - name: Log in to Azure Container Registry
-        uses: azure/docker-login@v1
-        with:
-          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
-          username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
-      
-      - name: Build and push Docker image
-        working-directory: ./src
-        env:
-          ENV_CONTENT: ${{ secrets.ENV }}
-        run: |
-          # Create temporary file for secret with restricted permissions atomically
-          (umask 077; echo "$ENV_CONTENT" > /tmp/env_secret)
-          
-          # Build with secret mount (more secure than build-arg)
-          docker build \
-            --secret id=env_content,src=/tmp/env_secret \
-            -t ${{ secrets.ACR_LOGIN_SERVER }}/techworkshop-app:${{ github.sha }} \
-            -t ${{ secrets.ACR_LOGIN_SERVER }}/techworkshop-app:latest \
-            .
-          
-          # Clean up temporary file
-          rm -f /tmp/env_secret
-          
-          # Push images
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/techworkshop-app:${{ github.sha }}
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/techworkshop-app:latest
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Log into ACR. You must add the following secrets to your GitHub repo:
+    # - ACR_REGISTRY: example myregistry.azurecr.io
+    # - ACR_USERNAME: service principal / registry username
+    # - ACR_PASSWORD: service principal password
+    # - ENV: the contents of your .env file (this will NOT be checked in)
+    - name: Log in to Azure Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ secrets.ACR_REGISTRY }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+
+    - name: Build image (context = src/)
+      id: build_image
+      run: |
+        TIMESTAMP=$(date +%s)
+        IMAGE_BASE=${{ secrets.ACR_REGISTRY }}/app:${TIMESTAMP}
+        docker build -t "$IMAGE_BASE" -f src/Dockerfile src
+        echo "IMAGE_BASE=$IMAGE_BASE" >> $GITHUB_ENV
+
+    # Create a temporary container, write the secret into a .env file inside it,
+    # commit the container as a new image, and push that image to ACR.
+    # This avoids checking a .env file into the repo and avoids exposing the secret in logs.
+    - name: Inject secret into image and push
+      env:
+        ENV_CONTENT: ${{ secrets.ENV }}
+      run: |
+        set -euo pipefail
+        IMAGE_BASE="$IMAGE_BASE"
+        FINAL_TAG="${IMAGE_BASE}-withenv"
+
+        # Create a stopped container from the built image
+        CONTAINER_ID=$(docker create "$IMAGE_BASE" /bin/sh -c "while true; do sleep 1; done")
+
+        # Start the container
+        docker start "$CONTAINER_ID"
+
+        # Write the secret into a couple of likely locations inside the container
+        # (some apps expect /.env, others /app/.env). We don't print the secret.
+        docker exec "$CONTAINER_ID" /bin/sh -lc 'printf "%s" "$ENV_CONTENT" > /.env'
+        docker exec "$CONTAINER_ID" /bin/sh -lc 'mkdir -p /app || true; printf "%s" "$ENV_CONTENT" > /app/.env'
+
+        # Commit the container as a new image and remove the temporary container
+        docker commit "$CONTAINER_ID" "$FINAL_TAG"
+        docker rm -f "$CONTAINER_ID"
+
+        # Push the final image to the registry
+        docker push "$FINAL_TAG"
+
+        echo "FINAL_IMAGE=$FINAL_TAG" >> $GITHUB_ENV
