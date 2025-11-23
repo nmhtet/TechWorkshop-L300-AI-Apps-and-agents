@@ -1,6 +1,7 @@
 name: Run Customer Loyalty Agent
 
 on:
+  workflow_dispatch:    # <-- allows manual run
   push:
     paths:
       - 'src/app/agents/customerLoyaltyAgent_initializer.py'
