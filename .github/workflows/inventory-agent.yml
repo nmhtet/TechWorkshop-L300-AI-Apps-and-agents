@@ -1,0 +1,35 @@
+name: Run Inventory Agent Script
+
+on:
+  push:
+    paths:
+      - 'src/app/agents/inventoryAgent_initializer.py'
+      - 'src/prompts/InventoryAgentPrompt.txt'
+      - 'src/app/tools/inventoryCheck.py'
+
+jobs:
+  run-inventory-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install azure-ai-projects
+          # Install additional dependencies if needed (e.g., from requirements.txt)
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Inventory Agent Initializer
+        env:
+          # Optionally set Azure environment variables here
+          # AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          # AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          # AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        run: python src/app/agents/inventoryAgent_initializer.py
