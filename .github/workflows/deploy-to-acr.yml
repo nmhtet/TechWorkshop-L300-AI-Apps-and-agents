@@ -29,13 +29,23 @@ jobs:
         username: ${{ secrets.ACR_USERNAME }}
         password: ${{ secrets.ACR_PASSWORD }}
 
+
     - name: Build image (context = src/)
       id: build_image
+      env:
+        ENV_CONTENT: ${{ secrets.ENV }}
       run: |
         TIMESTAMP=$(date +%s)
         IMAGE_BASE=${{ secrets.ACR_REGISTRY }}/app:${TIMESTAMP}
-        docker build -t "$IMAGE_BASE" -f src/Dockerfile src
+
+        docker build \
+          --secret id=env_content,env=ENV_CONTENT \
+          -t "$IMAGE_BASE" \
+          -f src/Dockerfile \
+          src
+
         echo "IMAGE_BASE=$IMAGE_BASE" >> $GITHUB_ENV
+
 
     # Create a temporary container, write the secret into a .env file inside it,
     # commit the container as a new image, and push that image to ACR.
