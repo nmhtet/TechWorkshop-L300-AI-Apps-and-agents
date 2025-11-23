@@ -13,8 +13,10 @@ jobs:
     env:
       # These will be available as real environment variables
       SEARCH_ENDPOINT: ${{ secrets.SEARCH_ENDPOINT }}
-      AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-      AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+      SEARCH_KEY: ${{ secrets.SEARCH_KEY }}
+      INDEX_NAME: ${{ secrets.INDEX_NAME }}
+      # AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+      # AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
       # AZURE_OPENAI_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
       # Add any other required secrets here (e.g. MCP tools URL, etc.)
 
