@@ -1,6 +1,7 @@
 name: Customer Loyalty Agent Deployment
 
-"on":
+# yamllint disable-line rule:truthy
+on:
   push:
     paths:
       - 'src/app/agents/customerLoyaltyAgent_initializer.py'
@@ -10,6 +11,7 @@ name: Customer Loyalty Agent Deployment
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   deploy-agent:
@@ -37,16 +39,14 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Set up environment variables
-      run: |
-        echo "AZURE_AI_AGENT_ENDPOINT=${{ secrets.AZURE_AI_AGENT_ENDPOINT }}" >> $GITHUB_ENV
-        echo "AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME=${{ secrets.AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME }}" >> $GITHUB_ENV
-        echo "AZURE_OPENAI_ENDPOINT=${{ secrets.AZURE_OPENAI_ENDPOINT }}" >> $GITHUB_ENV
-        echo "AZURE_OPENAI_KEY=${{ secrets.AZURE_OPENAI_KEY }}" >> $GITHUB_ENV
-        echo "gpt_deployment=${{ secrets.GPT_DEPLOYMENT }}" >> $GITHUB_ENV
-        echo "APPLICATIONINSIGHTS_CONNECTION_STRING=${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}" >> $GITHUB_ENV
-
     - name: Execute Customer Loyalty Agent Initializer
       working-directory: src/app/agents
+      env:
+        AZURE_AI_AGENT_ENDPOINT: ${{ secrets.AZURE_AI_AGENT_ENDPOINT }}
+        AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME: ${{ secrets.AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME }}
+        AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+        AZURE_OPENAI_KEY: ${{ secrets.AZURE_OPENAI_KEY }}
+        gpt_deployment: ${{ secrets.GPT_DEPLOYMENT }}
+        APPLICATIONINSIGHTS_CONNECTION_STRING: ${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}
       run: |
         python customerLoyaltyAgent_initializer.py

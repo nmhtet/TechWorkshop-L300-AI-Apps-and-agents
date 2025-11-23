@@ -39,9 +39,14 @@ The following secrets must be configured in your repository settings (Settings â
 1. **Checkout repository** - Retrieves the latest code
 2. **Set up Python** - Installs Python 3.11 with pip caching
 3. **Install dependencies** - Installs Python packages from `src/requirements.txt`
-4. **Azure Login** - Authenticates to Azure using the service principal
-5. **Set up environment variables** - Configures required environment variables
-6. **Execute Customer Loyalty Agent Initializer** - Runs the Python script to deploy/update the agent
+4. **Azure Login** - Authenticates to Azure using the service principal with federated identity
+5. **Execute Customer Loyalty Agent Initializer** - Runs the Python script with environment variables scoped to this step only for security
+
+### Security Features
+
+- **Federated Identity Authentication**: Uses OIDC tokens (`id-token: write` permission) instead of storing long-lived credentials
+- **Scoped Environment Variables**: Sensitive credentials are only available to the execution step that needs them, not globally
+- **Minimal Permissions**: The workflow only requests `contents: read` permission, following the principle of least privilege
 
 ### Azure Authentication Setup
 
