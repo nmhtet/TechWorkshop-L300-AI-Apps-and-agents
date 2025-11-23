@@ -43,7 +43,7 @@ with project_client:
         print(f"Retrieved existing agent, ID: {agent.id}")
         agent_exists = True
         
-     if agent_exists:
+    if agent_exists:
         agent = project_client.agents.update_agent(
             agent_id=agent.id,
             model=model,
@@ -52,7 +52,7 @@ with project_client:
             toolset=toolset
         )
         print(f"Updated {env_var_name} agent, ID: {agent.id}")
-
+    
     else:
 
         agent = project_client.agents.create_agent(
