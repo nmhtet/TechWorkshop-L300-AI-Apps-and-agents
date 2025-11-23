@@ -1,6 +1,7 @@
 name: Interior Design Agent Workflow
 
 on:
+  workflow_dispatch:    # <-- allows manual run
   push:
     paths:
       - 'src/app/agents/interiorDesignAgent_initializer.py'
