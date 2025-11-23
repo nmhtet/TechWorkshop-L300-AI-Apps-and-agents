@@ -39,4 +39,4 @@ jobs:
 
       - name: Run interiorDesignAgent_initializer.py
         run: |
-        python src/app/agents/interiorDesignAgent_initializer.py
+          python src/app/agents/interiorDesignAgent_initializer.py
