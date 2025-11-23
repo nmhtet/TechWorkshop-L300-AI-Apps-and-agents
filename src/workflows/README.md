@@ -61,7 +61,7 @@ These workflow files are **examples/templates** that you should copy to your `.g
 To create the `AZURE_CREDENTIALS` secret, run the following Azure CLI command:
 
 ```bash
-az ad sp create-for-rbac --name "TechWorkshopL300AzureAI" --json-auth --role contributor --scopes /subscriptions/{SUB_ID}/resourceGroups/{RG}
+az ad sp create-for-rbac --name "TechWorkshopL300AzureAI" --sdk-auth --role contributor --scopes /subscriptions/{SUB_ID}/resourceGroups/{RG}
 ```
 
 Replace `{SUB_ID}` with your Azure subscription ID and `{RG}` with your resource group name.
