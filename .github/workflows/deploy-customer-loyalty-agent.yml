@@ -10,40 +10,46 @@ on:
 jobs:
   run-customer-loyalty-agent:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
+      
       - name: Install dependencies + python-dotenv
         run: |
           python -m pip install --upgrade pip
           pip install -r src/requirements.txt
           pip install python-dotenv
-
+      
       - name: Create .env file from secret (secret name = ENV)
         run: |
           echo "$ENV_SECRET" > src/.env
           echo ".env file created successfully ($(wc -l < src/.env) lines)"
         env:
           ENV_SECRET: ${{ secrets.ENV }}
-
-      - name: Load .env and run the agent
-        run: |
-          python -c "
-from dotenv import load_dotenv
-import os
-load_dotenv('src/.env')
-print('SEARCH_ENDPOINT:', os.getenv('SEARCH_ENDPOINT')[:60] + '...' if os.getenv('SEARCH_ENDPOINT') else 'MISSING')
-"
-          python src/app/agents/customerLoyaltyAgent_initializer.py   # ← MOVED HERE
-
+      
       - name: Login via Azure CLI
         uses: azure/login@v2.1.1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
+      - name: Validate environment variables
+        run: |
+          python -c "
+          from dotenv import load_dotenv
+          import os
+          load_dotenv('src/.env')
+          endpoint = os.getenv('SEARCH_ENDPOINT')
+          if endpoint:
+              print('✅ SEARCH_ENDPOINT:', endpoint[:60] + '...' if len(endpoint) > 60 else endpoint)
+          else:
+              print('❌ SEARCH_ENDPOINT: MISSING')
+          "
+      
+      - name: Run customerLoyaltyAgent_initializer.py
+        run: |
+          python src/app/agents/customerLoyaltyAgent_initializer.py
