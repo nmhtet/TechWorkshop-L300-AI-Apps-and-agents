@@ -1,6 +1,7 @@
 name: Run shopperAgent_initializer on changes
 
 on:
+  workflow_dispatch:    # <-- allows manual run
   push:
     paths:
       - src/app/agents/shopperAgent_initializer.py
