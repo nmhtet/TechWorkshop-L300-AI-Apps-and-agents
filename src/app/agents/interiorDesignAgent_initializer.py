@@ -31,7 +31,7 @@ toolset = ToolSet()
 toolset.add(functions)
 project_client.agents.enable_auto_function_calls(tools=functions)
 
- # Create the agent using a specific deployment, name, instructions, and toolset
+# Create the agent using a specific deployment, name, instructions, and toolset
 with project_client:
 
     agent_exists = False
