@@ -1,68 +1,49 @@
 name: Deploy Customer Loyalty Agent
-
 on:
   workflow_dispatch:
   push:
-    # Paths include the initializer, prompt, workflow, and any associated tools
     paths:
       - 'src/app/agents/customerLoyaltyAgent_initializer.py'
       - 'src/app/tools/discountLogic.py'
       - 'src/prompts/CustomerLoyaltyAgentPrompt.txt'
-     # - '.github/workflows/deploy-customer-loyalty-agent.yml'
-  # Allows you to run this workflow manually from the Actions tab
-  
 
 jobs:
   run-customer-loyalty-agent:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-
       - name: Install dependencies + python-dotenv
         run: |
           python -m pip install --upgrade pip
           pip install -r src/requirements.txt
-          pip install python-dotenv   # This is the key package
+          pip install python-dotenv
 
-      - name: Create .env file from GitHub Secret
+      - name: Create .env file from secret (secret name = ENV)
         run: |
-          echo "$ENV_FILE_CONTENT" > src/.env
-          echo ".env file created with $(wc -l < src/.env) lines"
+          echo "$ENV_SECRET" > src/.env
+          echo ".env file created successfully ($(wc -l < src/.env) lines)"
         env:
-          ENV_FILE_CONTENT: ${{ secrets.DOTENV }}
+          ENV_SECRET: ${{ secrets.ENV }}
 
-      - name: Load .env and verify key variables (debug)
+      - name: Load .env and run the agent
         run: |
           python -c "
-          from dotenv import load_dotenv
-          import os
-          load_dotenv('src/.env')
-          print('SEARCH_ENDPOINT      →', os.getenv('SEARCH_ENDPOINT')[:50] + '...' if os.getenv('SEARCH_ENDPOINT') else 'MISSING')
-          print('AZURE_OPENAI_ENDPOINT →', os.getenv('AZURE_OPENAI_ENDPOINT')[:50] + '...' if os.getenv('AZURE_OPENAI_ENDPOINT') else 'MISSING')
-          "
-
-      # - name: Create .env file from secret
-      #   run: 'echo "$ENV" > src/.env'
-      #   shell: bash
-      #   env:
-      #     ENV: ${{ secrets.ENV }}
-  
+from dotenv import load_dotenv
+import os
+load_dotenv('src/.env')
+print('SEARCH_ENDPOINT:', os.getenv('SEARCH_ENDPOINT')[:60] + '...' if os.getenv('SEARCH_ENDPOINT') else 'MISSING')
+"
+          python src/app/agents/customerLoyaltyAgent_initializer.py   # ← MOVED HERE
 
       - name: Login via Azure CLI
         uses: azure/login@v2.1.1
         with:
-            creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Run customerLoyaltyAgent_initializer.py
-        run: |
-          python src/app/agents/customerLoyaltyAgent_initializer.py
-
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
