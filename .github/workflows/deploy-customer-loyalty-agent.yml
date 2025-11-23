@@ -8,48 +8,41 @@ on:
       - 'src/prompts/CustomerLoyaltyAgentPrompt.txt'
 
 jobs:
-  run-customer-loyalty-agent:
+  deploy-customer-loyalty-agent:
     runs-on: ubuntu-latest
+    env:
+      # These will be available as real environment variables
+      SEARCH_ENDPOINT: ${{ secrets.SEARCH_ENDPOINT }}
+      AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+      AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+      # AZURE_OPENAI_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
+      # Add any other required secrets here (e.g. MCP tools URL, etc.)
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      
-      - name: Install dependencies + python-dotenv
+
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r src/requirements.txt
-          pip install python-dotenv
-      
-      - name: Create .env file from secret (secret name = ENV)
-        run: |
-          echo "$ENV_SECRET" > src/.env
-          echo ".env file created successfully ($(wc -l < src/.env) lines)"
-        env:
-          ENV_SECRET: ${{ secrets.ENV }}
-      
+          # If you use python-dotenv anywhere, it's now available
+
       - name: Login via Azure CLI
         uses: azure/login@v2.1.1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-      
-      - name: Validate environment variables
+
+      - name: Debug environment (optional, remove later)
         run: |
-          python -c "
-          from dotenv import load_dotenv
-          import os
-          load_dotenv('src/.env')
-          endpoint = os.getenv('SEARCH_ENDPOINT')
-          if endpoint:
-              print('✅ SEARCH_ENDPOINT:', endpoint[:60] + '...' if len(endpoint) > 60 else endpoint)
-          else:
-              print('❌ SEARCH_ENDPOINT: MISSING')
-          "
-      
-      - name: Run customerLoyaltyAgent_initializer.py
+          echo "SEARCH_ENDPOINT is set: $(if [ -n '$SEARCH_ENDPOINT' ]; then echo 'yes'; else echo 'no'; fi)"
+          echo "First 10 chars of SEARCH_ENDPOINT: ${SEARCH_ENDPOINT:0:10}..."
+
+      - name: Run Customer Loyalty Agent Initializer
         run: |
           python src/app/agents/customerLoyaltyAgent_initializer.py
