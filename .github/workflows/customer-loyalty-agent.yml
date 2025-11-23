@@ -1,0 +1,31 @@
+name: Run Customer Loyalty Agent
+
+on:
+  push:
+    paths:
+      - 'src/app/agents/customerLoyaltyAgent_initializer.py'
+      - 'src/prompts/CustomerLoyaltyAgentPrompt.txt'
+      - 'src/app/tools/discountLogic.py'
+
+jobs:
+  run-customer-loyalty-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install azure-ai-projects
+
+      - name: Run the Customer Loyalty Agent initializer
+        env:
+          AZURE_AI_PROJECTS_CONNECTION_STRING: ${{ secrets.AZURE_AI_PROJECTS_CONNECTION_STRING }}
+        run: |
+          python src/app/agents/customerLoyaltyAgent_initializer.py
