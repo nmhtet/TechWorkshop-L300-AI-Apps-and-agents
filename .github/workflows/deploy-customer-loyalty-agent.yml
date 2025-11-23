@@ -1,6 +1,7 @@
 name: Deploy Customer Loyalty Agent
 
 on:
+  workflow_dispatch:
   push:
     # Paths include the initializer, prompt, workflow, and any associated tools
     paths:
@@ -9,7 +10,7 @@ on:
       - 'src/prompts/CustomerLoyaltyAgentPrompt.txt'
      # - '.github/workflows/deploy-customer-loyalty-agent.yml'
   # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+  
 
 jobs:
   run-customer-loyalty-agent:
