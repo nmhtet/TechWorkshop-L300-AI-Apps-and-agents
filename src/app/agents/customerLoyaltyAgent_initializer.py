@@ -35,7 +35,9 @@ toolset.add(functions)
 project_client.agents.enable_auto_function_calls(tools=functions)
 
 
-with project_client:
+def initialize_agent(project_client : AIProjectClient, model : str, env_var_name : str, name : str, instructions : str, toolset : ToolSet):
+    agent_id = os.environ[env_var_name]
+    with project_client:
         agent_exists = False
         if agent_id:
             # Check if agent exists.
@@ -60,5 +62,4 @@ with project_client:
             toolset=toolset
             )
             print(f"Created {env_var_name} agent, ID: {agent.id}")
-
 
