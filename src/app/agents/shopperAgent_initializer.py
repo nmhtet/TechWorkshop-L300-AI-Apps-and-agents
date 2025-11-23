@@ -1,12 +1,13 @@
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from azure.ai.projects import AIProjectClient
 from azure.identity import DefaultAzureCredential
-from azure.ai.agents.models import CodeInterpreterTool,FunctionTool, ToolSet
-from typing import Callable, Set, Any
-import json
+from azure.ai.agents.models import ToolSet
 from dotenv import load_dotenv
+from agent_processor import create_function_tool_for_agent
+from agent_initializer import initialize_agent
+
 load_dotenv()
 
 CORA_PROMPT_TARGET = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'prompts', 'ShopperAgentPrompt.txt')
@@ -20,32 +21,17 @@ project_client = AIProjectClient(
     credential=DefaultAzureCredential(),
 )
 
+# Create function tools for cora agent
+functions = create_function_tool_for_agent("cora")
+toolset = ToolSet()
+toolset.add(functions)
+project_client.agents.enable_auto_function_calls(tools=functions)
 
-with project_client:
-
-    agent_exists = False
-        if agent_id:
-            # Check if agent exists.
-            agent = project_client.agents.get_agent(agent_id)
-            print(f"Retrieved existing agent, ID: {agent.id}")
-            agent_exists = True
-        
-        if agent_exists:
-            agent = project_client.agents.update_agent(
-                agent_id=agent.id,
-                model=model,
-                name=name,
-                instructions=instructions,
-                toolset=toolset
-            )
-            print(f"Updated {env_var_name} agent, ID: {agent.id}")
-
-        else:
-
-            agent = project_client.agents.create_agent(
-            model=os.environ["AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME"],  # Model deployment name
-            name="Cora",  # Name of the agent
-            instructions=CORA_PROMPT,  # Instructions for the agent
-            # toolset=toolset
-            )
-            print(f"Created agent, ID: {agent.id}")
+initialize_agent(
+    project_client=project_client,
+    model=os.environ["AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME"],
+    env_var_name="cora",
+    name="Cora - Zava Shopping Assistant",
+    instructions=CORA_PROMPT,
+    toolset=toolset
+)
