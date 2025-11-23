@@ -7,7 +7,7 @@ on:
       - 'src/app/agents/customerLoyaltyAgent_initializer.py'
       - 'src/app/tools/discountLogic.py'
       - 'src/prompts/CustomerLoyaltyAgentPrompt.txt'
-      - '.github/workflows/deploy-customer-loyalty-agent.yml'
+     # - '.github/workflows/deploy-customer-loyalty-agent.yml'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -39,7 +39,7 @@ jobs:
         with:
             creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Execute customerLoyaltyAgent_initializer.py
+      - name: Run customerLoyaltyAgent_initializer.py
         run: |
         python src/app/agents/customerLoyaltyAgent_initializer.py
 
