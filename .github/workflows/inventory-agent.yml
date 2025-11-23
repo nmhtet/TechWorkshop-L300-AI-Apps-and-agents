@@ -1,6 +1,7 @@
 name: Run Inventory Agent Script
 
 on:
+  workflow_dispatch:    # <-- allows manual run
   push:
     paths:
       - 'src/app/agents/inventoryAgent_initializer.py'
