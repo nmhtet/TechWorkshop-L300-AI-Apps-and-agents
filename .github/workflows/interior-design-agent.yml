@@ -1,0 +1,51 @@
+name: Interior Design Agent Workflow
+
+on:
+  push:
+    paths:
+      - 'src/app/agents/interiorDesignAgent_initializer.py'
+      - 'src/prompts/InteriorDesignAgentPrompt.txt'
+      - 'src/app/tools/imageCreationTool.py'
+  pull_request:
+    paths:
+      - 'src/app/agents/interiorDesignAgent_initializer.py'
+      - 'src/prompts/InteriorDesignAgentPrompt.txt'
+      - 'src/app/tools/imageCreationTool.py'
+  workflow_dispatch:
+
+jobs:
+  run-interior-design-agent:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r src/requirements.txt
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Run Interior Design Agent Initializer
+        env:
+          AZURE_AI_AGENT_ENDPOINT: ${{ secrets.AZURE_AI_AGENT_ENDPOINT }}
+          AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME: ${{ secrets.AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME }}
+        run: |
+          cd src
+          python app/agents/interiorDesignAgent_initializer.py
